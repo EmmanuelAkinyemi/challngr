@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System</title>
+    <link rel="shortcut icon" href="../assets/img/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/login.css">
+</head>
+
+<body>
+     <!-- Alert container at the top of the page -->
+     <div class="alert-container" id="alertContainer"></div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Welcome Back</h1>
+            <p>Please enter your credentials to login</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username or Email</label>
+                <input type="text" id="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn" id="loginBtn">
+                <span id="btnText">Login</span>
+                <span id="btnSpinner" class="spinner" style="display: none;"></span>
+            </button>
+        </form>
+
+        <div class="footer-links">
+            <a href="forgot-password.html">Forgot password?</a> | <a href="register.html">Create account</a>
+        </div>
+    </div>
+
+    <script src="assets/js/login.js"></script>
+</body>
+
+</html>

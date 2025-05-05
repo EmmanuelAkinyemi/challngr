@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="shortcut icon" href="../assets/img/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="assets/css/register.css" />
+</head>
+
+<body>
+    <div class="register-container">
+        <h2>Create Account</h2>
+        <div id="error" class="error-message"></div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required />
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required minlength="6" />
+            </div>
+            
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm_password" required minlength="6" />
+            </div>
+            
+            <button type="submit" id="submitBtn">
+                <span id="btnText">Register</span>
+                <span id="btnSpinner" class="spinner" style="display: none;"></span>
+            </button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="login.html">Sign In</a>
+        </div>
+    </div>
+
+    <script src="assets/js/register.js"></script>
+</body>
+</html>
