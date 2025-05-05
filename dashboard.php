@@ -96,10 +96,10 @@
 
                     <!-- Card 2 with accent button -->
                     <div class="rounded-lg bg-white p-6 shadow">
-                        <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
-                        <button class="mt-4 px-4 py-2 rounded-md text-white font-medium accent-gradient hover:shadow-md transition-all">
+                        <h3 class="text-lg font-medium text-gray-900 py-2">Quick Actions</h3>
+                        <a href="code-challenge.php" class="mt-4 px-4 py-2 rounded-md text-white font-medium accent-gradient hover:shadow-md transition-all">
                             Start Challenge
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Card 3 with accent text -->

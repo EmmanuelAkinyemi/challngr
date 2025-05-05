@@ -48,7 +48,7 @@ require(['vs/editor/editor.main'], function() {
     `;
 
     // Send PHP to server
-    fetch('run-php.php', {
+    fetch('hooks/run-php.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: php })
