@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endforeach; ?>
 
-                        <button type="submit" class="w-full py-3 px-4 bg-accent-orange text-white font-medium rounded-md hover:bg-accent-red transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-red">
+                        <button type="submit" class="w-full py-3 px-4 bg-orange-600 text-white font-medium rounded-md hover:bg-accent-red transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-red">
                             Submit Quiz
                         </button>
                     </form>
