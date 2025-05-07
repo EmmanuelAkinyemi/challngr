@@ -106,7 +106,7 @@ try {
 
                 <!-- Score Summary -->
                 <div class="px-6 py-5 border-b border-gray-200">
-                    <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                         <div class="w-full md:w-1/2 mb-4 md:mb-0">
                             <h3 class="text-lg font-medium text-gray-900">Your Score</h3>
                             <div class="mt-4">
