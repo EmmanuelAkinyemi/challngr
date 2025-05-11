@@ -84,7 +84,7 @@
         <?php endif; ?>
 
         <main>
-            <div class="mx-auto max-w-7xl px-2 py-6 sm:px-2 lg:px-8 space-y-8">
+            <div class="mx-auto max-w-7xl px-2 py-6 sm:px-2 lg:px-4 space-y-8">
                 <?php echo $content; ?>
             </div>
         </main>
