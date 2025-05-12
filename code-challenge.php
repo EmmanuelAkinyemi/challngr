@@ -1,4 +1,6 @@
-<?php
+<?php   
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/controllers/ChallengeController.php';
@@ -43,7 +45,8 @@ ob_start();
 
 <div class="flex flex-col lg:flex-row min-h-screen bg-gray-900 text-gray-100 rounded-xl overflow-hidden">
     <!-- Challenge Panel -->
-    <div class="lg:w-1/3 w-full p-4 overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-700 rounded-t-xl lg:rounded-tr-none lg:rounded-l-xl">
+    <div
+        class="lg:w-1/3 w-full p-4 overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-700 rounded-t-xl lg:rounded-tr-none lg:rounded-l-xl">
         <!-- Challenge Navigation -->
         <div class="mb-6">
             <label for="challenge-select" class="block text-sm font-medium mb-1">Select Challenge:</label>
@@ -94,10 +97,11 @@ ob_start();
     <!-- Editor Panel -->
     <div class="flex-1 flex flex-col overflow-hidden rounded-b-xl lg:rounded-bl-none lg:rounded-r-xl">
         <!-- Header with challenge difficulty -->
-        <div class="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700 rounded-tr-xl lg:rounded-tl-none">
+        <div
+            class="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700 rounded-tr-xl lg:rounded-tl-none">
             <div class="flex space-x-2 items-center">
                 <span class="px-2 py-1 text-xs rounded-lg 
-                    <?= match($challenge['difficulty'] ?? 'medium') {
+                    <?= match ($challenge['difficulty'] ?? 'medium') {
                         'easy' => 'bg-green-900 text-green-100',
                         'medium' => 'bg-yellow-900 text-yellow-100',
                         'hard' => 'bg-red-900 text-red-100'
@@ -120,29 +124,32 @@ ob_start();
                 <!-- HTML Editor -->
                 <div class="flex flex-col h-full">
                     <div class="text-xs px-2 py-1 bg-gray-700 rounded-t-lg">HTML</div>
-                    <div id="htmlEditor" class="flex-1 border border-gray-700 rounded-b-lg" 
-                        data-starter="<?= htmlspecialchars($challenge['html_starter'] ?? '<!-- HTML here -->') ?>"></div>
+                    <div id="htmlEditor" class="flex-1 border border-gray-700 rounded-b-lg"
+                        data-starter="<?= htmlspecialchars($challenge['html_starter'] ?? '<!-- HTML here -->') ?>"
+                        data-challenge-id="<?= $challengeId ?>">
+                    </div>
                 </div>
-                
+
                 <!-- CSS Editor -->
                 <div class="flex flex-col h-full">
                     <div class="text-xs px-2 py-1 bg-gray-700 rounded-t-lg">CSS</div>
                     <div id="cssEditor" class="flex-1 border border-gray-700 rounded-b-lg"
                         data-starter="<?= htmlspecialchars($challenge['css_starter'] ?? '/* CSS here */') ?>"></div>
                 </div>
-                
+
                 <!-- JavaScript Editor -->
                 <div class="flex flex-col h-full">
                     <div class="text-xs px-2 py-1 bg-gray-700 rounded-t-lg">JS</div>
                     <div id="jsEditor" class="flex-1 border border-gray-700 rounded-b-lg"
                         data-starter="<?= htmlspecialchars($challenge['js_starter'] ?? '// JavaScript here') ?>"></div>
                 </div>
-                
+
                 <!-- PHP Editor -->
                 <div class="flex flex-col h-full">
                     <div class="text-xs px-2 py-1 bg-gray-700 rounded-t-lg">PHP</div>
                     <div id="phpEditor" class="flex-1 border border-gray-700 rounded-b-lg"
-                        data-starter="<?= htmlspecialchars($challenge['starter_code'] ?? '<?php\n// PHP here') ?>"></div>
+                        data-starter="<?= htmlspecialchars($challenge['starter_code'] ?? '<?php\n// PHP here') ?>">
+                    </div>
                 </div>
             </div>
 
@@ -159,7 +166,8 @@ ob_start();
                 </div>
                 <div class="flex flex-col h-full">
                     <div class="text-xs px-2 py-1 bg-gray-700 rounded-t-lg">Test Results</div>
-                    <pre id="testResults" class="flex-1 font-mono text-xs p-2 overflow-auto bg-gray-900 border border-gray-700 rounded-b-lg"></pre>
+                    <pre id="testResults"
+                        class="flex-1 font-mono text-xs p-2 overflow-auto bg-gray-900 border border-gray-700 rounded-b-lg"></pre>
                 </div>
             </div>
         </div>
@@ -167,8 +175,8 @@ ob_start();
         <!-- Navigation buttons -->
         <div class="flex justify-between p-4 bg-gray-800 border-t border-gray-700">
             <?php if ($currentChallengeIndex > 0): ?>
-                <a href="?id=<?= $challenges[$currentChallengeIndex - 1]['id'] ?>" 
-                   class="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600">
+                <a href="?id=<?= $challenges[$currentChallengeIndex - 1]['id'] ?>"
+                    class="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600">
                     Previous Challenge
                 </a>
             <?php else: ?>
@@ -180,98 +188,14 @@ ob_start();
                     Submit All Challenges
                 </button>
             <?php else: ?>
-                <a href="?id=<?= $challenges[$currentChallengeIndex + 1]['id'] ?>" 
-                   class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-500">
+                <a href="?id=<?= $challenges[$currentChallengeIndex + 1]['id'] ?>"
+                    class="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-500">
                     Next Challenge
                 </a>
             <?php endif; ?>
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/min/vs/loader.js"></script>
-
-<script>
-// Monaco Editor Initialization
-require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/min/vs' }});
-require(['vs/editor/editor.main'], function() {
-    const editors = {};
-    const editorIds = ['html', 'css', 'js', 'php'];
-    
-    // Initialize all editors
-    editorIds.forEach(id => {
-        const container = document.getElementById(`${id}Editor`);
-        const starterCode = container.dataset.starter;
-        
-        editors[id] = monaco.editor.create(container, {
-            value: starterCode,
-            language: id,
-            theme: 'vs-dark',
-            automaticLayout: true,
-            minimap: { enabled: false },
-            fontSize: 14
-        });
-    });
-
-    // Run button functionality
-    document.getElementById('runBtn').addEventListener('click', async () => {
-        const outputFrame = document.getElementById('output');
-        const testResults = document.getElementById('testResults');
-        
-        try {
-            // Get editor values
-            const html = editors.html.getValue();
-            const css = editors.css.getValue();
-            const js = editors.js.getValue();
-            const php = editors.php.getValue();
-            
-            // Update iframe
-            outputFrame.srcdoc = `
-                <!DOCTYPE html>
-                <html>
-                    <head><style>${css}</style></head>
-                    <body>${html}<script>${js}</script></body>
-                </html>
-            `;
-            
-            // Test PHP code
-            testResults.textContent = "Running tests...";
-            const response = await fetch('run-challenge.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    challenge_id: <?= $challengeId ?>,
-                    html, css, js, php
-                })
-            });
-            
-            const result = await response.json();
-            testResults.innerHTML = result.success 
-                ? `<span class="text-green-400">✓ ${result.message}</span>`
-                : `<span class="text-red-400">✗ ${result.message}</span>`;
-                
-        } catch (error) {
-            testResults.textContent = `Error: ${error.message}`;
-        }
-    });
-
-    // Submit all challenges
-    document.getElementById('submitAllBtn')?.addEventListener('click', async () => {
-        const response = await fetch('submit-challenges.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: <?= $_SESSION['user_id'] ?> })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            window.location.href = 'results.php?score=' + result.score;
-        } else {
-            alert('Submission failed: ' + result.message);
-        }
-    });
-});
-</script>
 
 <?php
 $content = ob_get_clean();

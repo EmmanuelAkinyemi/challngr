@@ -92,6 +92,8 @@
 
     <?php include "_partials/footer.php"; ?>
 
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/min/vs/loader.js"></script>
+
     <!-- <script src="./assets/editor.js"></script> -->
     <script>
         // Avatar generation
@@ -178,7 +180,168 @@
 
         // Example of a function to check if a username is available
     </script>
+    <script>
+        // Wait for the DOM to be fully loaded before initializing editors
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configure Monaco Editor loader
+            require.config({
+                paths: {
+                    'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.36.1/min/vs'
+                }
+            });
 
+            // Load Monaco Editor
+            require(['vs/editor/editor.main'], function() {
+                // Store editor instances
+                const editors = {};
+                const editorIds = ['html', 'css', 'js', 'php'];
+
+                // Initialize all editors
+                editorIds.forEach(id => {
+                    const container = document.getElementById(`${id}Editor`);
+
+                    // Get starter code from data attribute
+                    const starterCode = container.getAttribute('data-starter') || '';
+
+                    // Clear the container's initial content
+                    container.innerHTML = '';
+
+                    // Create editor instance
+                    editors[id] = monaco.editor.create(container, {
+                        value: starterCode,
+                        language: id,
+                        theme: 'vs-dark',
+                        automaticLayout: true,
+                        minimap: {
+                            enabled: false
+                        },
+                        fontSize: 14,
+                        scrollBeyondLastLine: false,
+                        roundedSelection: true,
+                        renderWhitespace: 'none'
+                    });
+                });
+
+                // Run button functionality
+                document.getElementById('runBtn').addEventListener('click', async function() {
+                    const outputFrame = document.getElementById('output');
+                    const testResults = document.getElementById('testResults');
+
+                    try {
+                        // Show loading state
+                        testResults.textContent = "Running tests...";
+
+                        // Get editor values
+                        const code = {
+                            html: editors.html.getValue(),
+                            css: editors.css.getValue(),
+                            js: editors.js.getValue(),
+                            php: editors.php.getValue(),
+                            challenge_id: <?= json_encode($challengeId) ?>
+                        };
+
+                        // Update iframe with HTML/CSS/JS preview
+                        outputFrame.srcdoc = `
+                    <!DOCTYPE html>
+                    <html>
+                        <head>
+                            <style>${code.css}</style>
+                            <meta charset="UTF-8">
+                        </head>
+                        <body>${code.html}
+                            <script>${code.js}<\/script>
+                        </body>
+                    </html>
+                `;
+
+                        // Execute PHP tests via AJAX
+                        const response = await fetch('hooks/run-challenge.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(code)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+
+                        const result = await response.json();
+
+                        // Display test results
+                        if (result.success) {
+                            testResults.innerHTML = `
+<span class="text-green-400">✓ ${result.message}</span>
+${result.results ? result.results.map(r => `
+<div class="mt-2">
+    <div>Input: ${r.input}</div>
+    <div>Expected: ${r.expected}</div>
+    <div>Received: ${r.actual}</div>
+    <div>Status: ${r.passed ? '✅ Passed' : '❌ Failed'}</div>
+</div>
+`).join('') : ''}
+`;
+                        } else {
+                            testResults.innerHTML = `<span class="text-red-400">✗ ${result.message}</span>`;
+                        }
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        testResults.innerHTML = `
+<span class="text-red-400">⚠️ An error occurred</span>
+<div class="text-xs mt-1">${error.message}</div>
+`;
+                    }
+                });
+
+                // Submit all challenges button handler
+                const submitBtn = document.getElementById('submitAllBtn');
+                if (submitBtn) {
+                    submitBtn.addEventListener('click', async function() {
+                        try {
+                            const response = await fetch('hooks/submit-challenges.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    user_id: <?= json_encode($_SESSION['user_id'] ?? null) ?>
+                                })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Submission failed');
+                            }
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                window.location.href = 'results.php?score=' + result.score;
+                            } else {
+                                alert('Error: ' + result.message);
+                            }
+
+                        } catch (error) {
+                            console.error('Submission error:', error);
+                            alert('Failed to submit: ' + error.message);
+                        }
+                    });
+                }
+
+                // Handle window resize for proper editor layout
+                window.addEventListener('resize', function() {
+                    editorIds.forEach(id => {
+                        if (editors[id]) {
+                            editors[id].layout();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 
 </body>
 

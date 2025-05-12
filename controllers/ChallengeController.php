@@ -84,18 +84,34 @@ class ChallengeController
      */
     public function getFullChallengeData(int $challengeId): array
     {
-        $challenge = $this->getChallenge($challengeId);
+        try {
+            // Get challenge details
+            $challenge = $this->getChallenge($challengeId);
+            error_log("Challenge loaded: " . print_r($challenge, true)); // Debug log
 
-        $requirements = $this->getChallengeRequirements($challengeId, false);
-        $examples = $this->getChallengeRequirements($challengeId, true);
-        $tests = $this->getChallengeTests($challengeId);
+            // Get requirements
+            $requirements = $this->getChallengeRequirements($challengeId, false);
+            error_log("Requirements loaded: " . count($requirements)); // Debug log
 
-        return [
-            'challenge' => $challenge,
-            'requirements' => $requirements,
-            'examples' => $examples,
-            'tests' => $tests
-        ];
+            // Get examples
+            $examples = $this->getChallengeRequirements($challengeId, true);
+            error_log("Examples loaded: " . count($examples)); // Debug log
+
+            // Get test cases
+            $testCases = $this->getChallengeTests($challengeId);
+            error_log("Test cases loaded: " . count($testCases)); // Debug log
+
+            return [
+                'challenge' => $challenge,
+                'requirements' => $requirements,
+                'examples' => $examples,
+                'tests' => $testCases
+            ];
+        } catch (Exception $e) {
+            error_log("Error in getFullChallengeData: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     /**
