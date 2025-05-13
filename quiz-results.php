@@ -2,13 +2,16 @@
 require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/config/db.php';
 
-// Check if user is logged in
+// Redirect if user is not logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: /auth/login.html');
     exit;
 }
 
-// Get attempt ID from URL
+// Get student name from session
+$studentName = $_SESSION['email'] ?? 'Student';
+
+// Get attempt ID
 $attemptId = $_GET['id'] ?? null;
 if (!$attemptId) {
     header('Location: dashboard.php');
@@ -16,7 +19,7 @@ if (!$attemptId) {
 }
 
 try {
-    // Get attempt details
+    // Fetch quiz attempt
     $attemptStmt = $pdo->prepare("
         SELECT uqa.*, q.title AS quiz_title
         FROM user_quiz_attempts uqa
@@ -30,7 +33,7 @@ try {
         throw new Exception("Quiz attempt not found");
     }
 
-    // Get all questions and user answers for this attempt
+    // Fetch answers
     $answersStmt = $pdo->prepare("
         SELECT 
             q.id AS question_id,
@@ -51,11 +54,17 @@ try {
     $answersStmt->execute([$attemptId]);
     $answers = $answersStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Calculate stats
     $totalQuestions = count($answers);
     $correctAnswers = array_sum(array_column($answers, 'is_correct'));
-    $percentage = round(($correctAnswers / $totalQuestions) * 100);
+    $percentage = $totalQuestions ? round(($correctAnswers / $totalQuestions) * 100) : 0;
 
+    // Grade logic
+    if ($percentage >= 70) $grade = 'A';
+    elseif ($percentage >= 60) $grade = 'B';
+    elseif ($percentage >= 50) $grade = 'C';
+    elseif ($percentage >= 45) $grade = 'D';
+    elseif ($percentage >= 40) $grade = 'E';
+    else $grade = 'F';
 } catch (PDOException $e) {
     die("Database error: " . $e->getMessage());
 } catch (Exception $e) {
@@ -64,34 +73,39 @@ try {
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-gray-100">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Results - Challngr</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .accent-gradient {
             background: linear-gradient(135deg, #ff3e3e, #ff6d3a);
         }
+
         .accent-gradient:hover {
             opacity: 0.9;
         }
     </style>
 </head>
+
 <body class="h-full">
     <div class="min-h-full">
         <?php include "_partials/header.php"; ?>
 
         <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <div class="bg-white shadow rounded-lg overflow-hidden">
-                <!-- Quiz Header -->
+            <div id="resultCard" class="bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b bg-blue-50 border-blue-200">
+                    <h1 class="text-2xl font-bold text-gray-800">Student: <?php echo htmlspecialchars($studentName); ?></h1>
+                </div>
+
                 <div class="px-6 py-5 bg-gray-50 border-b border-gray-200">
                     <div class="flex justify-between items-center">
                         <div>
@@ -104,20 +118,17 @@ try {
                     </div>
                 </div>
 
-                <!-- Score Summary -->
                 <div class="px-6 py-5 border-b border-gray-200">
                     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div class="w-full md:w-1/2 mb-4 md:mb-0">
+                        <div class="w-full md:w-1/2">
                             <h3 class="text-lg font-medium text-gray-900">Your Score</h3>
                             <div class="mt-4">
-                                <div class="text-4xl font-bold">
-                                    <?php echo $correctAnswers; ?>/<?php echo $totalQuestions; ?>
-                                </div>
+                                <div class="text-4xl font-bold"><?php echo $correctAnswers; ?>/<?php echo $totalQuestions; ?></div>
                                 <div class="mt-2 w-full bg-gray-200 rounded-full h-4">
-                                    <div class="h-full rounded-full accent-gradient" 
-                                         style="width: <?php echo $percentage; ?>%"></div>
+                                    <div class="h-full rounded-full accent-gradient" style="width: <?php echo $percentage; ?>%"></div>
                                 </div>
                                 <p class="mt-2 text-gray-600"><?php echo $percentage; ?>% Correct</p>
+                                <p class="text-gray-800 mt-1">Grade: <span class="font-semibold"><?php echo $grade; ?></span></p>
                             </div>
                         </div>
                         <div class="w-full md:w-1/2">
@@ -136,7 +147,6 @@ try {
                     </div>
                 </div>
 
-                <!-- Detailed Results -->
                 <div class="px-6 py-5">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Question Breakdown</h3>
                     <div class="space-y-6">
@@ -145,8 +155,7 @@ try {
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <h4 class="font-medium text-gray-900">
-                                            Question #<?php echo $index + 1; ?>: 
-                                            <?php echo htmlspecialchars($answer['question_text']); ?>
+                                            Question #<?php echo $index + 1; ?>: <?php echo htmlspecialchars($answer['question_text']); ?>
                                         </h4>
                                         <p class="mt-2 text-sm <?php echo $answer['is_correct'] ? 'text-green-600' : 'text-red-600'; ?>">
                                             Your answer: <?php echo htmlspecialchars($answer['selected_option_text'] ?? 'Not answered'); ?>
@@ -170,26 +179,30 @@ try {
                         <?php endforeach; ?>
                     </div>
                 </div>
+            </div>
 
-                <!-- Action Buttons -->
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
-                    <a href="dashboard.php" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Back to Dashboard
-                    </a>
-                    <a href="quiz.php?id=<?php echo $attempt['quiz_id']; ?>" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white accent-gradient hover:opacity-90">
-                        Retake Quiz
-                    </a>
-                </div>
+            <div class="mt-6 flex justify-between">
+                <a href="dashboard.php" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Back to Dashboard
+                </a>
+                <button onclick="downloadResult()" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white accent-gradient hover:opacity-90">
+                    Download Result
+                </button>
             </div>
         </main>
     </div>
 
     <script>
-        // Example of using accent colors in JavaScript
-        document.addEventListener('DOMContentLoaded', function() {
-            // You can use the accent colors in your JS too
-            console.log('Quiz results loaded for attempt: <?php echo $attemptId; ?>');
-        });
+        function downloadResult() {
+            const resultCard = document.getElementById('resultCard');
+            html2canvas(resultCard).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Quiz_Result_<?php echo preg_replace("/[^a-zA-Z0-9]/", "_", $studentName); ?>.jpeg';
+                link.href = canvas.toDataURL("image/jpeg");
+                link.click();
+            });
+        }
     </script>
 </body>
+
 </html>

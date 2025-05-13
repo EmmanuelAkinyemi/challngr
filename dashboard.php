@@ -24,14 +24,15 @@ try {
 
     // Get quiz performance (taken quizzes)
     $performanceStmt = $pdo->prepare("
-        SELECT q.id, q.title, uqa.score, uqa.completed_at,
-               (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) AS total_questions,
-               (uqa.score / (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id)) * 100 AS percentage
-        FROM user_quiz_attempts uqa
-        JOIN quizzes q ON uqa.quiz_id = q.id
-        WHERE uqa.user_id = ?
-        ORDER BY uqa.completed_at DESC
-    ");
+    SELECT uqa.id AS attempt_id, q.title, uqa.score, uqa.completed_at,
+           (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) AS total_questions,
+           (uqa.score / (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id)) * 100 AS percentage
+    FROM user_quiz_attempts uqa
+    JOIN quizzes q ON uqa.quiz_id = q.id
+    WHERE uqa.user_id = ?
+    ORDER BY uqa.completed_at DESC
+");
+
     $performanceStmt->execute([$_SESSION['user_id']]);
     $quizPerformance = $performanceStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -137,7 +138,7 @@ ob_start(); // Start output buffering
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="quiz-results.php?id=<?php echo $performance['id']; ?>" class="text-accent-orange hover:text-accent-red">View Details</a>
+                                <a href="quiz-results.php?id=<?php echo $performance['attempt_id']; ?>" class="text-accent-orange hover:text-accent-red">View Details</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -152,6 +153,6 @@ ob_start(); // Start output buffering
 </div>
 
 <?php
-$content = ob_get_clean(); // Get the buffered content
-include 'app-layout.php'; // Include the layout
+$content = ob_get_clean();
+include 'app-layout.php';
 ?>
