@@ -24,7 +24,7 @@ $challengeId = $_GET['id'] ?? 1;
 try {
     // Get challenge data
     $challengeData = $challengeController->showChallenge($challengeId);
-    
+
     // Handle form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userId = $_SESSION['user_id'];
@@ -32,7 +32,7 @@ try {
             'html' => $_POST['html_code'] ?? '',
             'css' => $_POST['css_code'] ?? '',
             'js' => $_POST['js_code'] ?? '',
-            'php' => $_POST['php_code'] ?? ''
+            'php' => $_POST['php_code'] ?? '',
         ];
         $result = $challengeController->submitSolution($challengeId, $userId, json_encode($code));
     }
@@ -49,40 +49,50 @@ $pageHeader = null; // Hide default header
 
 // Custom styles for this page
 $customStyles = '
-<style>
-    .monaco-editor {
-        height: 100%;
-        width: 100%;
-    }
+    <style>
+        .monaco-editor {
+            height: 100% !important;
+            width: 100% !important;
+        }
 
-    .editor-container {
-        height: 300px;
-        border: 1px solid #374151;
-        border-radius: 0.375rem;
-        overflow: hidden;
-    }
+        .editor-container {
+            height: 300px;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            position: relative; /* Add this */
+        }
 
-    .test-result pre {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
+        .test-result pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
 
-    .accent-gradient {
-        background: linear-gradient(135deg, #ff3e3e, #ff6d3a);
-    }
+        .accent-gradient {
+            background: linear-gradient(135deg, #ff3e3e, #ff6d3a);
+        }
 
-    .accent-gradient:hover {
-        opacity: 0.9;
-    }
+        .accent-gradient:hover {
+            opacity: 0.9;
+        }
 
-    .preview-frame {
-        width: 100%;
-        height: 300px;
-        border: 1px solid #374151;
-        border-radius: 0.375rem;
-        background: white;
-    }
-</style>';
+        .preview-frame {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            background: white;
+        }
+
+        /* Add these new styles */
+        #htmlEditor, #cssEditor, #jsEditor, #phpEditor {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+    </style>';
 
 ob_start();
 ?>
@@ -93,14 +103,15 @@ ob_start();
         <div class="lg:w-1/4 p-6 border-r border-gray-700">
             <div class="space-y-6">
                 <div class="flex items-center justify-between">
-                    <h1 class="text-2xl font-bold text-white"><?= htmlspecialchars($challenge['title'] ?? "Challenge") ?></h1>
+                    <h1 class="text-2xl font-bold text-white">
+                        <?php echo htmlspecialchars($challenge['title'] ?? "Challenge") ?></h1>
                     <span class="px-3 py-1 text-sm rounded-full bg-gradient-to-r from-orange-600 to-red-600">
-                        <?= htmlspecialchars($challenge['difficulty'] ?? 'Medium') ?>
+                        <?php echo htmlspecialchars($challenge['difficulty'] ?? 'Medium') ?>
                     </span>
                 </div>
 
                 <div class="prose prose-invert prose-sm">
-                    <?= nl2br(htmlspecialchars($challenge['description'] ?? "")) ?>
+                    <?php echo nl2br(htmlspecialchars($challenge['description'] ?? "")) ?>
                 </div>
 
                 <?php if (!empty($testCases)): ?>
@@ -111,9 +122,11 @@ ob_start();
                                 <?php if (!$test['is_hidden']): ?>
                                     <div class="p-3 bg-gray-800 rounded-lg border border-gray-700">
                                         <div class="text-sm text-gray-400">Input:</div>
-                                        <code class="block p-2 mt-1 text-sm bg-gray-900 rounded"><?= htmlspecialchars($test['input']) ?></code>
+                                        <code
+                                            class="block p-2 mt-1 text-sm bg-gray-900 rounded"><?php echo htmlspecialchars($test['input']) ?></code>
                                         <div class="text-sm text-gray-400 mt-2">Expected Output:</div>
-                                        <code class="block p-2 mt-1 text-sm bg-gray-900 rounded"><?= htmlspecialchars($test['expected_output']) ?></code>
+                                        <code
+                                            class="block p-2 mt-1 text-sm bg-gray-900 rounded"><?php echo htmlspecialchars($test['expected_output']) ?></code>
                                     </div>
                                 <?php endif; ?>
                             <?php endforeach; ?>
@@ -123,7 +136,7 @@ ob_start();
 
                 <?php if (isset($error)): ?>
                     <div class="p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-100">
-                        <?= htmlspecialchars($error) ?>
+                        <?php echo htmlspecialchars($error) ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -140,7 +153,9 @@ ob_start();
                             <span class="text-xs text-gray-500">index.html</span>
                         </div>
                         <div class="editor-container">
-                            <div id="htmlEditor" data-language="html" data-starter="<?= htmlspecialchars($challenge['html_starter'] ?? '<!-- Write your HTML here -->') ?>"></div>
+                            <div id="htmlEditor" data-language="html"
+                                data-starter="<?php echo htmlspecialchars($challenge['html_starter'] ?? '<!-- Write your HTML here -->') ?>">
+                            </div>
                         </div>
                         <textarea name="html_code" class="hidden"></textarea>
                     </div>
@@ -152,7 +167,9 @@ ob_start();
                             <span class="text-xs text-gray-500">styles.css</span>
                         </div>
                         <div class="editor-container">
-                            <div id="cssEditor" data-language="css" data-starter="<?= htmlspecialchars($challenge['css_starter'] ?? '/* Write your CSS here */') ?>"></div>
+                            <div id="cssEditor" data-language="css"
+                                data-starter="<?php echo htmlspecialchars($challenge['css_starter'] ?? '/* Write your CSS here */') ?>">
+                            </div>
                         </div>
                         <textarea name="css_code" class="hidden"></textarea>
                     </div>
@@ -164,7 +181,9 @@ ob_start();
                             <span class="text-xs text-gray-500">script.js</span>
                         </div>
                         <div class="editor-container">
-                            <div id="jsEditor" data-language="javascript" data-starter="<?= htmlspecialchars($challenge['js_starter'] ?? '// Write your JavaScript here') ?>"></div>
+                            <div id="jsEditor" data-language="javascript"
+                                data-starter="<?php echo htmlspecialchars($challenge['js_starter'] ?? '// Write your JavaScript here') ?>">
+                            </div>
                         </div>
                         <textarea name="js_code" class="hidden"></textarea>
                     </div>
@@ -176,7 +195,9 @@ ob_start();
                             <span class="text-xs text-gray-500">index.php</span>
                         </div>
                         <div class="editor-container">
-                            <div id="phpEditor" data-language="php" data-starter="<?= htmlspecialchars($challenge['php_starter'] ?? '<?php\n// Write your PHP code here') ?>"></div>
+                            <div id="phpEditor" data-language="php"
+                                data-starter="<?php echo htmlspecialchars($challenge['php_starter'] ?? '<?php\n// Write your PHP code here') ?>">
+                            </div>
                         </div>
                         <textarea name="php_code" class="hidden"></textarea>
                     </div>
@@ -187,10 +208,12 @@ ob_start();
                     <div class="flex items-center justify-between">
                         <label class="text-sm font-medium text-gray-300">Preview</label>
                         <div class="flex gap-2">
-                            <button type="button" id="previewBtn" class="px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-orange-500">
+                            <button type="button" id="previewBtn"
+                                class="px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-orange-500">
                                 Preview
                             </button>
-                            <button type="submit" id="submitBtn" class="px-4 py-2 text-sm font-medium text-white rounded-lg accent-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-orange-500">
+                            <button type="submit" id="submitBtn"
+                                class="px-4 py-2 text-sm font-medium text-white rounded-lg accent-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-orange-500">
                                 Submit Solution
                             </button>
                         </div>
@@ -202,30 +225,35 @@ ob_start();
                     <div class="space-y-4">
                         <h2 class="text-xl font-bold flex items-center justify-between">
                             Test Results
-                            <span class="text-<?= $result['passed'] ? 'green' : 'red' ?>-500">
-                                Score: <?= $result['score'] ?>%
+                            <span class="text-<?php echo $result['passed'] ? 'green' : 'red' ?>-500">
+                                Score: <?php echo $result['score'] ?>%
                             </span>
                         </h2>
 
                         <div class="space-y-3">
                             <?php foreach ($result['test_results'] as $test): ?>
                                 <?php if (!$test['hidden']): ?>
-                                    <div class="p-4 rounded-lg border <?= $test['passed'] ? 'bg-green-900/20 border-green-700' : 'bg-red-900/20 border-red-700' ?>">
-                                        <div class="font-medium <?= $test['passed'] ? 'text-green-400' : 'text-red-400' ?>">
-                                            <?= $test['passed'] ? '✓ Passed' : '✗ Failed' ?>
+                                    <div
+                                        class="p-4 rounded-lg border<?php echo $test['passed'] ? 'bg-green-900/20 border-green-700' : 'bg-red-900/20 border-red-700' ?>">
+                                        <div
+                                            class="font-medium                                                                                                                                                                                              <?php echo $test['passed'] ? 'text-green-400' : 'text-red-400' ?>">
+                                            <?php echo $test['passed'] ? '✓ Passed' : '✗ Failed' ?>
                                         </div>
                                         <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                             <div>
                                                 <div class="font-medium text-gray-400">Input:</div>
-                                                <pre class="mt-1 p-2 bg-gray-800 rounded"><?= htmlspecialchars($test['input']) ?></pre>
+                                                <pre
+                                                    class="mt-1 p-2 bg-gray-800 rounded"><?php echo htmlspecialchars($test['input']) ?></pre>
                                             </div>
                                             <div>
                                                 <div class="font-medium text-gray-400">Expected:</div>
-                                                <pre class="mt-1 p-2 bg-gray-800 rounded"><?= htmlspecialchars($test['expected']) ?></pre>
+                                                <pre
+                                                    class="mt-1 p-2 bg-gray-800 rounded"><?php echo htmlspecialchars($test['expected']) ?></pre>
                                             </div>
                                             <div>
                                                 <div class="font-medium text-gray-400">Actual:</div>
-                                                <pre class="mt-1 p-2 bg-gray-800 rounded"><?= htmlspecialchars($test['actual']) ?></pre>
+                                                <pre
+                                                    class="mt-1 p-2 bg-gray-800 rounded"><?php echo htmlspecialchars($test['actual']) ?></pre>
                                             </div>
                                         </div>
                                     </div>
@@ -240,39 +268,39 @@ ob_start();
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize editors
-    const editors = {};
-    const editorElements = document.querySelectorAll('[id$="Editor"]');
-    
-    editorElements.forEach(element => {
-        const language = element.dataset.language;
-        const starterCode = element.dataset.starter || '';
-        
-        editors[language] = monaco.editor.create(element, {
-            value: starterCode,
-            language: language,
-            theme: 'vs-dark',
-            automaticLayout: true,
-            minimap: { enabled: false },
-            fontSize: 14,
-            scrollBeyondLastLine: false,
-            roundedSelection: true,
-            padding: { top: 10 }
-        });
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize editors
+        const editors = {};
+        const editorElements = document.querySelectorAll('[id$="Editor"]');
 
-    // Handle preview button click
-    const previewBtn = document.getElementById('previewBtn');
-    const previewFrame = document.getElementById('previewFrame');
-    
-    if (previewBtn && previewFrame) {
-        previewBtn.addEventListener('click', function() {
-            const html = editors.html.getValue();
-            const css = editors.css.getValue();
-            const js = editors.javascript.getValue();
-            
-            const content = `
+        editorElements.forEach(element => {
+            const language = element.dataset.language;
+            const starterCode = element.dataset.starter || '';
+
+            editors[language] = monaco.editor.create(element, {
+                value: starterCode,
+                language: language,
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 14,
+                scrollBeyondLastLine: false,
+                roundedSelection: true,
+                padding: { top: 10 }
+            });
+        });
+
+        // Handle preview button click
+        const previewBtn = document.getElementById('previewBtn');
+        const previewFrame = document.getElementById('previewFrame');
+
+        if (previewBtn && previewFrame) {
+            previewBtn.addEventListener('click', function () {
+                const html = editors.html.getValue();
+                const css = editors.css.getValue();
+                const js = editors.javascript.getValue();
+
+                const content = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -284,23 +312,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 </body>
                 </html>
             `;
-            
-            previewFrame.srcdoc = content;
-        });
-    }
 
-    // Handle form submission
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function() {
-            // Update hidden textareas with editor content
-            document.querySelector('[name="html_code"]').value = editors.html.getValue();
-            document.querySelector('[name="css_code"]').value = editors.css.getValue();
-            document.querySelector('[name="js_code"]').value = editors.javascript.getValue();
-            document.querySelector('[name="php_code"]').value = editors.php.getValue();
-        });
-    }
-});
+                previewFrame.srcdoc = content;
+            });
+        }
+
+        // Handle form submission
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                // Update hidden textareas with editor content
+                document.querySelector('[name="html_code"]').value = editors.html.getValue();
+                document.querySelector('[name="css_code"]').value = editors.css.getValue();
+                document.querySelector('[name="js_code"]').value = editors.javascript.getValue();
+                document.querySelector('[name="php_code"]').value = editors.php.getValue();
+            });
+        }
+    });
 </script>
 
 <?php
